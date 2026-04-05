@@ -1,0 +1,86 @@
+[
+  {
+    "name": "vague_tech_idea",
+    "input": "인증 시스템을 추가하고 싶어",
+    "expect_skill": "ina:think",
+    "expect_mode": "technical",
+    "description": "모호한 기술 아이디어 → think technical 모드"
+  },
+  {
+    "name": "startup_idea",
+    "input": "이 스타트업 아이디어 검증해줘 — AI 기반 코드 리뷰 SaaS",
+    "expect_skill": "ina:think",
+    "expect_mode": "business",
+    "description": "사업 아이디어 → think business 모드"
+  },
+  {
+    "name": "refactor_request",
+    "input": "auth 모듈이 너무 복잡해. 리팩터해줘",
+    "expect_skill": "ina:think",
+    "expect_mode": "improve",
+    "description": "개선 요청 → think improve 모드"
+  },
+  {
+    "name": "specific_bug",
+    "input": "bridge.ts:326에서 null 체크가 빠져있어. 수정해줘",
+    "expect_skill": "ina:build",
+    "expect_mode": "direct",
+    "description": "구체적 버그 → build 직접 실행"
+  },
+  {
+    "name": "multiple_fixes",
+    "input": "TypeScript 에러 전부 수정하고, 린트도 정리하고, 테스트 커버리지도 올려줘",
+    "expect_skill": "ina:build",
+    "expect_mode": "parallel",
+    "description": "독립 태스크 여러개 → build 병렬 위임"
+  },
+  {
+    "name": "run_tests",
+    "input": "테스트 전부 돌려봐",
+    "expect_skill": "ina:test",
+    "expect_mode": null,
+    "description": "테스트 실행 → test 스킬"
+  },
+  {
+    "name": "create_pr",
+    "input": "PR 만들어줘",
+    "expect_skill": "ina:ship",
+    "expect_mode": null,
+    "description": "PR 생성 → ship 스킬"
+  },
+  {
+    "name": "full_auto",
+    "input": "TODO 앱을 TypeScript로 만들어줘. 처음부터 끝까지 알아서 해줘",
+    "expect_skill": "ina:autopilot",
+    "expect_mode": null,
+    "description": "전자동 요청 → autopilot"
+  },
+  {
+    "name": "plan_needed",
+    "input": "이 스펙 파일 기반으로 구현 플랜 짜줘: .omc/specs/think-auth.md",
+    "expect_skill": "ina:plan",
+    "expect_mode": null,
+    "description": "플래닝 요청 → plan 스킬"
+  },
+  {
+    "name": "code_review",
+    "input": "커밋 전에 코드 리뷰 해줘",
+    "expect_skill": "ina:review",
+    "expect_mode": null,
+    "description": "코드 리뷰 → review 스킬"
+  },
+  {
+    "name": "research_needed",
+    "input": "WebSocket vs SSE 성능 비교 조사해줘",
+    "expect_skill": "ina:research",
+    "expect_mode": null,
+    "description": "외부 조사 → research 스킬"
+  },
+  {
+    "name": "ui_design",
+    "input": "로그인 페이지 디자인 만들어줘",
+    "expect_skill": "ina:design",
+    "expect_mode": null,
+    "description": "UI 구현 → design 스킬"
+  }
+]

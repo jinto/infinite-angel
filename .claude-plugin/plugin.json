@@ -1,0 +1,8 @@
+{
+  "name": "ina",
+  "description": "Infinite Agent — coding agents that never stop. 10 skills for the full dev lifecycle.",
+  "version": "1.0.0",
+  "skills": "./skills/",
+  "author": { "name": "jinto" },
+  "license": "MIT"
+}

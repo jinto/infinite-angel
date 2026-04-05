@@ -1,0 +1,6 @@
+ina
+ina-mcp
+*.log
+.state/
+.omc/
+ref/
