@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/jinto/ina/config"
 	"github.com/spf13/cobra"
@@ -83,6 +85,10 @@ var setupCmd = &cobra.Command{
 
 		fmt.Printf("Hooks configured → %s\n", settingsPath)
 		fmt.Printf("Hook endpoint: %s/hooks/*\n", base)
+
+		// Install Context7 MCP if not already configured
+		setupContext7()
+
 		fmt.Println("\nRun 'ina daemon' to start receiving events.")
 		return nil
 	},
@@ -103,6 +109,24 @@ func findInfaMCP() string {
 	}
 	return ""
 }
+
+func setupContext7() {
+	// Check if context7 is already configured
+	out, err := exec.Command("claude", "mcp", "list").CombinedOutput()
+	if err == nil && strings.Contains(string(out), "context7") {
+		fmt.Println("Context7 MCP: already configured")
+		return
+	}
+
+	// Install Context7 (no API key required)
+	fmt.Print("Installing Context7 MCP (library docs)... ")
+	if err := exec.Command("claude", "mcp", "add", "context7", "--", "npx", "-y", "@upstash/context7-mcp").Run(); err != nil {
+		fmt.Printf("skipped (%v)\n", err)
+		return
+	}
+	fmt.Println("done")
+}
+
 
 func init() {
 	rootCmd.AddCommand(setupCmd)

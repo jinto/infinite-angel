@@ -1,6 +1,6 @@
 ---
 name: review
-description: 멀티모델 코드 리뷰 + fix-first 자동 수정 + autopilot 루프백 프로토콜
+description: ina 멀티모델 코드 리뷰 + fix-first 자동 수정 + 루프백
 argument-hint: [file-or-diff-target]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: build
-description: TASKS.md 태스크 구현 — 실행 위임(직접/subagent/team) + 테스트 검증
+description: ina 태스크 실행 — 직접, subagent, team 위임 + 테스트 검증
 argument-hint: [--non-interactive]
 ---
 

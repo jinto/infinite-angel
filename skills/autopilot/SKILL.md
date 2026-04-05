@@ -1,6 +1,6 @@
 ---
 name: autopilot
-description: 파이프라인 오케스트레이터 — think → plan → build → review → commit 자동 실행
+description: ina 파이프라인 오케스트레이터 — think, plan, build, review, commit 자동 실행
 argument-hint: [task description]
 ---
 

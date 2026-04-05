@@ -27,6 +27,9 @@ var daemonCmd = &cobra.Command{
 
 		fmt.Println("ina daemon started")
 
+		// Check for updates in background
+		go CheckForUpdate()
+
 		select {
 		case sig := <-sigCh:
 			fmt.Printf("\nreceived %s, shutting down...\n", sig)
