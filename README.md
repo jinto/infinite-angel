@@ -1,5 +1,7 @@
 # ina — Infinite Agent
 
+[한국어](README.ko.md)
+
 Daemon-supervised coding agents that never stop.
 
 Go daemon (process watching, crash recovery, Discord alerts) + 10 Claude Code plugin skills with autopilot pipeline orchestration.

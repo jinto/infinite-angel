@@ -1,5 +1,7 @@
 # ina — Infinite Agent
 
+[English](README.md)
+
 멈추지 않는 코딩 에이전트.
 
 Go 데몬(프로세스 감시, 크래시 복구, Discord 알림) + Claude Code 플러그인 스킬 10개 + autopilot 파이프라인 오케스트레이션.
