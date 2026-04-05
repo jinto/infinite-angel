@@ -73,6 +73,68 @@ ina daemon    # 또는: 포그라운드 실행
 | `ship` | PR 생성 (변경 요약 자동 작성) |
 | `guard` | 무인 실행 안전장치 |
 
+어떤 스킬을 써야 할지 모르겠으면, 하고 싶은 걸 그냥 말하세요 — ina가 내장 레퍼런스 가이드로 알아서 선택합니다.
+
+---
+
+## 사용 시나리오
+
+### "아이디어가 모호해요"
+
+```
+/ina:think 사용자 인증을 추가하고 싶어
+```
+
+소크라틱 인터뷰 → 다관점 검증 (Architect/Critic/CEO) → 스펙 문서.
+
+### "스펙은 있고 플랜이 필요해요"
+
+```
+/ina:plan .omc/specs/think-auth.md
+```
+
+합의 기반 플래닝 (Planner → Architect → Critic) → TDD 태스크 분해 → TASKS.md.
+
+### "태스크가 있으니 구현만 해줘"
+
+```
+/ina:build
+```
+
+자동 위임: 태스크 1개면 직접, 2-3개 독립이면 서브에이전트 병렬, 4개+면 팀.
+
+### "처음부터 끝까지 알아서 해줘"
+
+```
+/ina:autopilot OAuth2로 사용자 인증 추가
+```
+
+전체 파이프라인: think → plan → build → review → commit. `.state/pipeline.json`으로 크래시 복구.
+
+### "커밋 전에 리뷰해줘"
+
+```
+/ina:review
+```
+
+외부 코드 리뷰 (Codex) + fix-first 자동 수정 + 루프백 프로토콜.
+
+### "테스트 돌려주고 실패하면 수정해줘"
+
+```
+/ina:test
+```
+
+root cause 분석 + 수정 + 재실행 (최대 5회).
+
+### "PR 만들어줘"
+
+```
+/ina:ship
+```
+
+git log/diff에서 변경 요약 자동 작성 + 테스트 확인 후 PR 생성.
+
 ---
 
 ## 파이프라인

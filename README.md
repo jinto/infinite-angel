@@ -73,6 +73,68 @@ Other Claude Code plugins are **prompt libraries**. ina is **infrastructure**.
 | `ship` | Create PR with auto-generated summary |
 | `guard` | Safety guardrails for unattended execution |
 
+Don't know which skill to use? Just describe what you want — ina auto-selects the right skill via the built-in reference guide.
+
+---
+
+## Usage Scenarios
+
+### "I have a vague idea"
+
+```
+/ina:think I want to add user authentication
+```
+
+Socratic interview → multi-perspective validation (Architect/Critic/CEO) → spec document.
+
+### "I have a spec, need a plan"
+
+```
+/ina:plan .omc/specs/think-auth.md
+```
+
+Consensus planning (Planner → Architect → Critic) → TDD task breakdown → TASKS.md.
+
+### "I have tasks, just build it"
+
+```
+/ina:build
+```
+
+Auto-delegates: direct execution for 1 task, subagent parallelism for 2-3, team for 4+.
+
+### "Do everything from scratch"
+
+```
+/ina:autopilot Add user authentication with OAuth2
+```
+
+Full pipeline: think → plan → build → review → commit. Crash-recoverable via `.state/pipeline.json`.
+
+### "Review before commit"
+
+```
+/ina:review
+```
+
+External code review (Codex) + fix-first auto-correction + loopback protocol.
+
+### "Run tests and fix failures"
+
+```
+/ina:test
+```
+
+Root cause analysis + fix + re-run (max 5 cycles).
+
+### "Create a PR"
+
+```
+/ina:ship
+```
+
+Auto-generates summary from git log/diff + runs tests before PR creation.
+
 ---
 
 ## Pipeline
