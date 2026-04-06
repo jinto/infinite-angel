@@ -78,8 +78,23 @@ func (s severity) color() string {
 	}
 }
 
+// DisabledFile is the flag file that disables the HUD.
+var DisabledFile = func() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".ina", "hud_disabled")
+}()
+
+// IsDisabled checks whether the HUD is turned off.
+func IsDisabled() bool {
+	_, err := os.Stat(DisabledFile)
+	return err == nil
+}
+
 // Render reads Claude Code's statusline stdin and writes formatted output.
 func Render(r io.Reader, w io.Writer) error {
+	if IsDisabled() {
+		return nil
+	}
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
@@ -103,7 +118,7 @@ func Render(r io.Reader, w io.Writer) error {
 	pct := clamp(int(math.Round(stdin.ContextWindow.UsedPercentage)), 0, 100)
 	sev := classify(pct)
 
-	line := renderContextBar(pct, sev, 10)
+	line := bold + "INA" + reset + " " + renderContextBar(pct, sev, 10)
 
 	var extras []string
 	if stdin.Model != nil && stdin.Model.DisplayName != "" {
@@ -121,6 +136,9 @@ func Render(r io.Reader, w io.Writer) error {
 	if warning := renderWarning(pct); warning != "" {
 		fmt.Fprintln(w, warning)
 	}
+
+	// Persist context percentage so hooks can read it.
+	writeContextPct(pct)
 	return nil
 }
 
@@ -163,6 +181,16 @@ func clamp(v, lo, hi int) int {
 		return hi
 	}
 	return v
+}
+
+// ContextPctFile is where the last known context percentage is stored.
+var ContextPctFile = func() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".ina", "ctx_pct")
+}()
+
+func writeContextPct(pct int) {
+	_ = os.WriteFile(ContextPctFile, []byte(fmt.Sprintf("%d", pct)), 0600)
 }
 
 // RenderFromStdin is a convenience for CLI use.

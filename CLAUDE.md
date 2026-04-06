@@ -36,6 +36,14 @@ autopilot: think → plan → build → review → commit
 | research | `.omc/research/{slug}.md` | think/plan | 참고 자료 |
 | design | 구현된 디자인 코드 | review | `git diff` |
 
+## HUD (Statusline)
+
+Claude Code 하단에 context 사용률, 모델, 프로젝트명 표시.
+
+- `ina hud on` — HUD 활성화
+- `ina hud off` — HUD 비활성화
+- context 80% 이상 시 hook을 통해 `/compact` 안내 자동 주입
+
 ## MCP Tools
 
 - `ina_report_progress` — 진행 상황 보고
