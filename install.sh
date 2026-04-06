@@ -78,12 +78,16 @@ esac
 # 4. Record installed version
 echo "$TAG" > "${INSTALL_DIR}/../version"
 
+# 5. Auto-configure Claude Code (hooks + MCP + statusline)
+echo ""
+echo "Configuring Claude Code..."
+"${INSTALL_DIR}/ina" setup || echo "  Warning: auto-setup failed. Run 'ina setup' manually."
+
 echo ""
 echo "Installed:"
 echo "  Binaries: ${INSTALL_DIR}/ina, ina-mcp"
 echo ""
 echo "Next steps:"
 echo "  source ${PROFILE}              # reload PATH (or open a new terminal)"
-echo "  ina setup                     # configure Claude Code hooks + MCP"
 echo "  /plugin marketplace add https://github.com/jinto/infinite-agent"
 echo "  /plugin install ina"
