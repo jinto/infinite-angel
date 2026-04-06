@@ -83,9 +83,11 @@ npx codex exec -C . --full-auto -s read-only -c model_reasoning_effort="xhigh" \
 
 | 판정 | 의미 | autopilot 동작 |
 |------|------|---------------|
-| **CLEAN** | 이슈 없음 | → 문서 업데이트 확인 → commit |
-| **MECHANICAL FIX** | 기계적 수정 완료, 추가 이슈 없음 | → 문서 업데이트 확인 → commit |
+| **CLEAN** | 이슈 없음 | → 리뷰 게이트 해제 → 문서 업데이트 확인 → commit |
+| **MECHANICAL FIX** | 기계적 수정 완료, 추가 이슈 없음 | → 리뷰 게이트 해제 → 문서 업데이트 확인 → commit |
 | **CODE CHANGE REQUIRED** | 코드 변경 필요 | → execute 단계로 루프백 |
+
+**리뷰 게이트 해제:** CLEAN 또는 MECHANICAL FIX 판정 시 `.state/review-gate.md`를 삭제한다. 이 파일이 삭제되어야 커밋이 가능하다 (guard 규칙 5 참조).
 
 ## autopilot 루프백 프로토콜
 

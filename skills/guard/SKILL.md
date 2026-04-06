@@ -52,6 +52,19 @@ user-invocable: false
 - `*.pem`, `*.key`
 - SSH/API 키를 포함하는 것으로 보이는 파일
 
+### 5. 리뷰 게이트
+
+빌드 완료 후 커밋 전 반드시 리뷰를 거쳐야 한다. **이 규칙은 autopilot 내부뿐 아니라, `/ina:build` 단독 실행 후에도 적용된다.**
+
+**메커니즘:**
+- `/ina:build` 완료 시 `.state/review-gate.md` 생성 (`status: pending`)
+- `/ina:review`에서 CLEAN 또는 MECHANICAL FIX 판정 시 `.state/review-gate.md` 삭제
+- `.state/review-gate.md`가 존재하는 동안 **git commit 절대 금지**
+
+**체크 타이밍:** `git commit` 실행 직전
+- `.state/review-gate.md` 존재 → `"⛔ 리뷰 게이트: /ina:review를 먼저 실행하세요"` 출력 + 커밋 차단
+- 존재하지 않음 → 정상 진행
+
 ## 적용 방식
 
 이 규칙은 **다른 스킬의 SKILL.md에서 참조**된다:
