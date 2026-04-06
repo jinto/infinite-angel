@@ -35,17 +35,19 @@ var statusCmd = &cobra.Command{
 
 		if len(agents) == 0 {
 			fmt.Println("No agents tracked.")
-			return nil
+		} else {
+			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+			fmt.Fprintln(w, "NAME\tSTATE\tAGENT\tPID\tLAST ACTIVE\tRESTARTS")
+			for _, a := range agents {
+				fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%d\n",
+					a.Name, a.State, a.Kind, a.PID,
+					timeSince(a.LastActive), a.RestartCount)
+			}
+			w.Flush()
 		}
 
-		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "NAME\tSTATE\tAGENT\tPID\tLAST ACTIVE\tRESTARTS")
-		for _, a := range agents {
-			fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%d\n",
-				a.Name, a.State, a.Kind, a.PID,
-				timeSince(a.LastActive), a.RestartCount)
-		}
-		return w.Flush()
+		CheckForUpdate()
+		return nil
 	},
 }
 

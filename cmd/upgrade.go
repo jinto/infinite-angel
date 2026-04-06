@@ -71,8 +71,12 @@ func writeLocalVersion(version string) {
 }
 
 func fetchLatestVersion() (string, error) {
+	return fetchLatestVersionTimeout(10 * time.Second)
+}
+
+func fetchLatestVersionTimeout(timeout time.Duration) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", repoOwner, repoName)
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(url)
 	if err != nil {
 		return "", err
@@ -93,17 +97,17 @@ func fetchLatestVersion() (string, error) {
 }
 
 // CheckForUpdate checks if a newer version is available and prints a message.
-// Called by the daemon on startup.
+// Uses a short timeout to avoid blocking interactive commands.
 func CheckForUpdate() {
 	current := readLocalVersion()
 	if current == "unknown" {
 		return
 	}
-	latest, err := fetchLatestVersion()
+	latest, err := fetchLatestVersionTimeout(2 * time.Second)
 	if err != nil || latest == current {
 		return
 	}
-	fmt.Printf("ina %s available (current: %s). Run 'ina upgrade' to update.\n", latest, current)
+	fmt.Printf("\nina %s available (current: %s). Run 'ina upgrade' to update.\n", latest, current)
 }
 
 func runInstallScript() error {
