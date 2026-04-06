@@ -37,28 +37,27 @@ done
 # 2. Remove legacy local plugin (conflicts with marketplace install)
 rm -rf "$HOME/.claude/plugins/ina" 2>/dev/null || true
 
-# 3. Add to PATH automatically
+# 3. Detect shell profile
+CURRENT_SHELL=$(basename "${SHELL:-/bin/sh}")
+case "$CURRENT_SHELL" in
+  zsh)  PROFILE="$HOME/.zshrc" ;;
+  bash)
+    if [ -f "$HOME/.bash_profile" ]; then
+      PROFILE="$HOME/.bash_profile"
+    elif [ -f "$HOME/.bashrc" ]; then
+      PROFILE="$HOME/.bashrc"
+    else
+      PROFILE="$HOME/.bash_profile"
+    fi
+    ;;
+  *)    PROFILE="$HOME/.profile" ;;
+esac
+
+# 4. Add to PATH if not already present
 PATH_LINE="export PATH=\"${INSTALL_DIR}:\$PATH\""
 case ":$PATH:" in
   *":${INSTALL_DIR}:"*) ;;
   *)
-    # Detect shell profile based on current shell, not just file existence
-    PROFILE=""
-    CURRENT_SHELL=$(basename "${SHELL:-/bin/sh}")
-    case "$CURRENT_SHELL" in
-      zsh)  PROFILE="$HOME/.zshrc" ;;
-      bash)
-        if [ -f "$HOME/.bash_profile" ]; then
-          PROFILE="$HOME/.bash_profile"
-        elif [ -f "$HOME/.bashrc" ]; then
-          PROFILE="$HOME/.bashrc"
-        else
-          PROFILE="$HOME/.bash_profile"  # create it
-        fi
-        ;;
-      *)    PROFILE="$HOME/.profile" ;;
-    esac
-
     if [ -n "$PROFILE" ]; then
       if ! grep -q ".ina/bin" "$PROFILE" 2>/dev/null; then
         echo "" >> "$PROFILE"
@@ -75,10 +74,10 @@ case ":$PATH:" in
     ;;
 esac
 
-# 4. Record installed version
+# 5. Record installed version
 echo "$TAG" > "${INSTALL_DIR}/../version"
 
-# 5. Auto-configure Claude Code (hooks + MCP + statusline)
+# 6. Auto-configure Claude Code (hooks + MCP + statusline)
 echo ""
 echo "Configuring Claude Code..."
 "${INSTALL_DIR}/ina" setup || echo "  Warning: auto-setup failed. Run 'ina setup' manually."
@@ -88,6 +87,8 @@ echo "Installed:"
 echo "  Binaries: ${INSTALL_DIR}/ina, ina-mcp"
 echo ""
 echo "Next steps:"
-echo "  source ${PROFILE}              # reload PATH (or open a new terminal)"
+if [ -n "$PROFILE" ]; then
+  echo "  source ${PROFILE}              # reload PATH (or open a new terminal)"
+fi
 echo "  /plugin marketplace add https://github.com/jinto/infinite-agent"
 echo "  /plugin install ina"
