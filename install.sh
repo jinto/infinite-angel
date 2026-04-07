@@ -90,5 +90,8 @@ echo "Next steps:"
 if [ -n "$PROFILE" ]; then
   echo "  source ${PROFILE}              # reload PATH (or open a new terminal)"
 fi
+echo "  ina install                        # register daemon (auto-start on login)"
+echo ""
+echo "  # In Claude Code:"
 echo "  /plugin marketplace add https://github.com/jinto/infinite-agent"
 echo "  /plugin install ina"

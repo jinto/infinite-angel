@@ -16,23 +16,19 @@ _Launch an agent. Go to sleep. Wake up to working code._
 ## Quick Start
 
 ```bash
-# 1. Install binaries
+# 1. Install (binaries + auto-configuration)
 curl -sSL https://raw.githubusercontent.com/jinto/infinite-agent/main/install.sh | sh
 source ~/.zshrc  # or open a new terminal
 
-# 2. Setup (Claude Code hooks + MCP)
-ina setup
+# 2. Register daemon (auto-start on login)
+ina install
 
 # 3. Install skills (in Claude Code)
 /plugin marketplace add https://github.com/jinto/infinite-agent
 /plugin install ina
 
-# 4. Start daemon (pick one)
-ina install   # recommended: auto-start on login (macOS launchd)
-ina daemon    # or: run in foreground
-
-# 5. Use
-/ina:autopilot Add user authentication
+# 4. Example
+/ina:autopilot Implement a login feature.
 ```
 
 ---

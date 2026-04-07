@@ -16,23 +16,19 @@ _잠든 사이, 코드가 완성됩니다._
 ## 시작하기
 
 ```bash
-# 1. 바이너리 설치
+# 1. 설치 (바이너리 + 설정 자동 완료)
 curl -sSL https://raw.githubusercontent.com/jinto/infinite-agent/main/install.sh | sh
 source ~/.zshrc  # 또는 새 터미널 열기
 
-# 2. 설정 (Claude Code 훅 + MCP)
-ina setup
+# 2. 데몬 등록 (로그인 시 자동 시작)
+ina install
 
 # 3. 스킬 설치 (Claude Code에서)
 /plugin marketplace add https://github.com/jinto/infinite-agent
 /plugin install ina
 
-# 4. 데몬 시작 (택 1)
-ina install   # 추천: 로그인 시 자동 시작 (macOS launchd)
-ina daemon    # 또는: 포그라운드 실행
-
-# 5. 사용
-/ina:autopilot 사용자 인증 추가
+# 4. 사용예
+/ina:autopilot 로그인 기능을 구현하시오.
 ```
 
 ---
