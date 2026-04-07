@@ -13,6 +13,7 @@ user-invocable: false
 | 스킬 | 호출 | 용도 |
 |------|------|------|
 | **autopilot** | `/ina:autopilot` | 아이디어 → 커밋 전자동 파이프라인 |
+| **explore** | `/ina:explore` | "만들까 말까?" 탐색 — 시장조사 + GO/NO-GO/PIVOT 판정 |
 | **think** | `/ina:think` | 아이디어 구체화 (기술/사업/개선) |
 | **plan** | `/ina:plan` | 합의 기반 플래닝 + TDD 태스크 분해 |
 | **build** | `/ina:build` | TASKS.md 태스크 실행 (직접/subagent/team) |
@@ -33,6 +34,18 @@ user-invocable: false
 |--------|------|
 | "처음부터 끝까지", "알아서", "전자동", "autopilot" | `/ina:autopilot` |
 | "만들어줘" + 모호한 요구사항 | `/ina:autopilot` |
+
+### 탐색 단계 ("만들까 말까?")
+
+| 시그널 | 스킬 |
+|--------|------|
+| "이거 어때?", "해볼까?", "할 가치 있어?" | `/ina:explore` |
+| "이런 게 이미 있나?", "시장이 있나?" | `/ina:explore` |
+| 스타트업 아이디어 현실성 진단 | `/ina:explore` (Startup 모드) |
+| 사이드프로젝트 방향 탐색 | `/ina:explore` (Builder 모드) |
+
+> **explore vs research**: explore는 "해야 하나?" 결정을 위한 질문+조사 통합. research는 결정 이후 순수 정보 수집.
+> **explore vs think**: explore는 GO/NO-GO 판정이 정상 출력. think는 이미 만들기로 결정한 후 스펙 작성.
 
 ### 아이디어 / 요구사항 단계
 
@@ -71,13 +84,18 @@ user-invocable: false
 ## 파이프라인 흐름
 
 ```
-think → plan → build → review → commit
-  ↑                       ↑         │
-  │                       └─────────┘ (루프백 최대 3회)
-  │
-  └─ 어디서든 시작 가능 (중간부터 가능)
+explore → think → plan → build → review → commit
+  ↑          ↑                      ↑         │
+  │          └──────────────────────┘         │
+  │          (루프백 최대 3회)                 │
+  │                                           │
+  NO-GO/PIVOT (종료 또는 재탐색)              │
+                                              │
+  └─ 어디서든 시작 가능 (중간부터 가능)  ←───┘
 ```
 
+- "만들까 말까?" 모를 때 → explore부터
+- 만들기로 결정했지만 스펙이 모호 → think부터
 - 스펙이 이미 있으면 → plan부터
 - TASKS.md가 있으면 → build부터
 - 코드가 있고 리뷰만 필요 → review부터
@@ -98,6 +116,9 @@ think → plan → build → review → commit
 
 | 스킬 완료 후 | 다음 추천 |
 |-------------|----------|
+| explore (GO) | `/ina:think` (스펙 구체화) |
+| explore (PIVOT) | `/ina:explore` (새 방향으로 재실행) |
+| explore (NO-GO) | 종료 또는 새 아이디어로 재시작 |
 | think | `/ina:plan` |
 | plan | `/ina:build` |
 | build | `/ina:review` |

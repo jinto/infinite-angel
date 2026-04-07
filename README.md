@@ -53,15 +53,18 @@ Other Claude Code plugins are **prompt libraries**. ina is **infrastructure**.
 ## Skills
 
 ```
-  THINK         PLAN          BUILD (impl→review→commit)       SHIP
- ┌──────┐     ┌──────┐     ┌──────────────────────────┐     ┌──────┐
- │ Idea │ ──▶ │ Plan │ ──▶ │ Code → 3-lane Review     │ ──▶ │  PR  │
- │ Spec │     │ Tasks│     │ → Fix-first → Commit     │     │ Merge│
- └──────┘     └──────┘     └──────────────────────────┘     └──────┘
+  EXPLORE       THINK         PLAN          BUILD (impl→review→commit)       SHIP
+ ┌────────┐   ┌──────┐     ┌──────┐     ┌──────────────────────────┐     ┌──────┐
+ │ Build  │   │ Idea │     │ Plan │     │ Code → 3-lane Review     │     │  PR  │
+ │ it?    │──▶│ Spec │ ──▶ │Tasks │ ──▶ │ → Fix-first → Commit     │ ──▶ │Merge │
+ └────────┘   └──────┘     └──────┘     └──────────────────────────┘     └──────┘
+ GO/NO-GO/
+  PIVOT
 ```
 
 | Skill | Description |
 |-------|-------------|
+| `explore` | "Should I build this?" — inline market research + GO / NO-GO / PIVOT verdict |
 | `autopilot` | Full pipeline: think → plan → build |
 | `think` | Idea → spec (technical / business / improve) |
 | `plan` | Consensus planning + TDD task breakdown |
@@ -79,13 +82,21 @@ Don't know which skill to use? Just describe what you want — ina auto-selects 
 
 ## Usage Scenarios
 
+### "Should I even build this?"
+
+```
+/ina:explore I'm thinking of a SaaS tool for async code review
+```
+
+Detects Startup or Builder mode → questions with inline WebSearch → competitive landscape → premise challenge → GO / NO-GO / PIVOT verdict saved to `.ina/explore/`.
+
 ### "I have a vague idea"
 
 ```
 /ina:think I want to add user authentication
 ```
 
-Socratic interview → multi-perspective validation (Architect/Critic/CEO) → spec document.
+Socratic interview → multi-perspective validation (Architect/Critic/CEO) → spec document saved to `.ina/specs/`.
 
 ### "I have a spec, need a plan"
 
@@ -140,39 +151,61 @@ Auto-generates summary from git log/diff + runs tests before PR creation.
 ## Pipeline
 
 ```
-autopilot: think → plan → build
-                           │
-                           ├─ Phase 1: Implement
-                           ├─ Phase 2: Review (3-lane + fix-first, loopback max 3)
-                           └─ Phase 3: Commit
+explore ──GO──▶ think → plan → build → review → commit
+   │                              ↑         │
+PIVOT/NO-GO                       └─────────┘ (loopback max 3)
+   │
+   ▼
+ stop or
+re-explore
 ```
 
 **Crash recovery** via `.state/pipeline.json` — the daemon restarts the agent and resumes from the recorded stage.
 
 **Multi-perspective validation** — think and plan invoke Architect, Critic, and CEO subagents in parallel to validate specs and plans before execution.
 
-**Execution delegation** — build auto-selects direct execution, subagent parallelism, or team coordination based on task independence.
+**Execution delegation** — build auto-selects direct execution, subagent parallelism, or team coordination based on task count and independence.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────┐
-│  Skill Layer (SKILL.md)                 │
-│  In-session orchestration via           │
-│  Claude Code native tools               │
-│                                         │
-│  autopilot / think / plan / build /     │
-│  review / test / ship / guard           │
-├─────────────────────────────────────────┤
-│  Daemon Layer (Go binary)               │
-│  Out-of-session process supervision     │
-│  Crash recovery, restart, Discord alerts│
-│                                         │
-│  ina daemon / watcher / hooks / MCP     │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│  Skill Layer (SKILL.md)                     │
+│  In-session orchestration via               │
+│  Claude Code native tools                   │
+│                                             │
+│  explore / autopilot / think / plan /       │
+│  build / review / research / design /       │
+│  test / ship / guard                        │
+├─────────────────────────────────────────────┤
+│  Daemon Layer (Go binary)                   │
+│  Out-of-session process supervision         │
+│  Crash recovery, restart, Discord alerts    │
+│                                             │
+│  ina daemon / watcher / hooks / MCP         │
+└─────────────────────────────────────────────┘
 ```
+
+---
+
+## CLI Reference
+
+| Command | Description |
+|---------|-------------|
+| `ina setup` | Install Claude Code hooks and MCP server |
+| `ina install` | Register daemon as macOS launch agent (auto-start on login) |
+| `ina uninstall` | Remove daemon, hooks, HUD, and MCP server |
+| `ina upgrade` | Upgrade ina to the latest version |
+| `ina status` | Show all tracked agents |
+| `ina launch <path> <task>` | Launch a new agent on a project |
+| `ina restart <name\|id>` | Restart a dead or stalled agent |
+| `ina stop <name\|id>` | Stop a specific agent |
+| `ina attach <name>` | Attach to an agent's live log output |
+| `ina log [agent-name]` | View agent or daemon logs |
+| `ina hud on\|off` | Toggle HUD statusline in Claude Code |
+| `ina daemon` | Start the watchdog daemon (usually managed by launchd) |
 
 ---
 
