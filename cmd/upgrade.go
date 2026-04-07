@@ -104,10 +104,20 @@ func CheckForUpdate() {
 		return
 	}
 	latest, err := fetchLatestVersionTimeout(2 * time.Second)
-	if err != nil || latest == current {
+	if err != nil {
+		return
+	}
+	writeLatestVersion(latest)
+	if latest == current {
 		return
 	}
 	fmt.Printf("\nina %s available (current: %s). Run 'ina upgrade' to update.\n", latest, current)
+}
+
+func writeLatestVersion(version string) {
+	path := filepath.Join(config.DataDir(), "latest_version")
+	os.MkdirAll(filepath.Dir(path), 0700)
+	os.WriteFile(path, []byte(version+"\n"), 0600)
 }
 
 func runInstallScript() error {

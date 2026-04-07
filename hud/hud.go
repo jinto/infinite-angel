@@ -149,6 +149,9 @@ func Render(r io.Reader, w io.Writer) error {
 	if rl := renderRateLimits(stdin.RateLimits); rl != "" {
 		ctxLabel += "  " + rl
 	}
+	if upg := upgradeHint(); upg != "" {
+		ctxLabel += "  " + upg
+	}
 	parts = append(parts, ctxLabel)
 
 	fmt.Fprintln(w, strings.Join(parts, sep))
@@ -201,6 +204,26 @@ func formatResetTime(epoch int64) string {
 	}
 	t := time.Unix(epoch, 0).Local()
 	return t.Format("15:04")
+}
+
+func upgradeHint() string {
+	home, _ := os.UserHomeDir()
+	base := filepath.Join(home, ".ina")
+
+	current, err := os.ReadFile(filepath.Join(base, "version"))
+	if err != nil {
+		return ""
+	}
+	latest, err := os.ReadFile(filepath.Join(base, "latest_version"))
+	if err != nil {
+		return ""
+	}
+	cur := strings.TrimSpace(string(current))
+	lat := strings.TrimSpace(string(latest))
+	if cur == "" || lat == "" || cur == lat {
+		return ""
+	}
+	return yellow + "↑ " + lat + reset
 }
 
 // ContextPctFile is where the last known context percentage is stored.

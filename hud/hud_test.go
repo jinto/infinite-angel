@@ -2,6 +2,8 @@ package hud
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -111,6 +113,38 @@ func TestRenderRateLimitsPartial(t *testing.T) {
 	}
 	if strings.Contains(out, "7d") {
 		t.Errorf("unexpected 7d rate limit in %q", out)
+	}
+}
+
+func TestUpgradeHint(t *testing.T) {
+	dir := t.TempDir()
+
+	// No files → empty
+	origHome := os.Getenv("HOME")
+	t.Setenv("HOME", dir)
+	defer os.Setenv("HOME", origHome)
+
+	if got := upgradeHint(); got != "" {
+		t.Errorf("expected empty, got %q", got)
+	}
+
+	// Same version → empty
+	base := filepath.Join(dir, ".ina")
+	os.MkdirAll(base, 0700)
+	os.WriteFile(filepath.Join(base, "version"), []byte("v0.2.0\n"), 0600)
+	os.WriteFile(filepath.Join(base, "latest_version"), []byte("v0.2.0\n"), 0600)
+	if got := upgradeHint(); got != "" {
+		t.Errorf("same version should be empty, got %q", got)
+	}
+
+	// Different version → shows hint
+	os.WriteFile(filepath.Join(base, "latest_version"), []byte("v0.3.0\n"), 0600)
+	got := upgradeHint()
+	if !strings.Contains(got, "v0.3.0") {
+		t.Errorf("expected upgrade hint with v0.3.0, got %q", got)
+	}
+	if !strings.Contains(got, "↑") {
+		t.Errorf("expected ↑ arrow in hint, got %q", got)
 	}
 }
 
