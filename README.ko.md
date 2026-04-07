@@ -29,6 +29,10 @@ ina install
 
 # 4. 사용예
 /ina:autopilot 로그인 기능을 구현하시오.
+
+# 삭제 (데몬, hooks, HUD, MCP 서버 제거)
+ina uninstall          # 설정 유지 (~/.ina)
+ina uninstall --purge  # 전부 삭제
 ```
 
 ---

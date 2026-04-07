@@ -29,6 +29,10 @@ ina install
 
 # 4. Example
 /ina:autopilot Implement a login feature.
+
+# Uninstall (removes daemon, hooks, HUD, MCP server)
+ina uninstall          # keep config (~/.ina)
+ina uninstall --purge  # remove everything
 ```
 
 ---

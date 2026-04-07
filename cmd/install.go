@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/jinto/ina/config"
@@ -101,26 +103,152 @@ var installCmd = &cobra.Command{
 	},
 }
 
+var purgeFlag bool
+
 var uninstallCmd = &cobra.Command{
 	Use:   "uninstall",
-	Short: "Remove ina daemon launch agent",
+	Short: "Remove ina daemon, hooks, HUD, and MCP server from Claude Code",
+	Long:  "Remove all ina integrations from Claude Code.\nUse --purge to also delete ~/.ina (config, logs, registry).",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// 1. LaunchAgent
 		path := plistPath()
 		exec.Command("launchctl", "unload", path).Run()
-
-		if err := os.Remove(path); os.IsNotExist(err) {
-			fmt.Println("Not installed.")
-			return nil
-		} else if err != nil {
+		if err := os.Remove(path); err == nil {
+			fmt.Printf("Removed: %s\n", path)
+		} else if !os.IsNotExist(err) {
 			return fmt.Errorf("remove plist: %w", err)
 		}
 
-		fmt.Printf("Removed: %s\n", path)
+		// 2. Clean settings.json (hooks, statusLine, mcpServers.ina)
+		if err := cleanSettings(); err != nil {
+			fmt.Printf("Warning: settings cleanup failed: %v\n", err)
+		}
+
+		// 3. Restore pre-push hook
+		restorePrePushHook()
+
+		// 4. Purge data directory
+		if purgeFlag {
+			dataDir := config.DataDir()
+			if err := os.RemoveAll(dataDir); err != nil {
+				fmt.Printf("Warning: failed to remove %s: %v\n", dataDir, err)
+			} else {
+				fmt.Printf("Removed: %s\n", dataDir)
+			}
+		}
+
+		fmt.Println("\nina has been uninstalled.")
 		return nil
 	},
 }
 
+func cleanSettings() error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	settingsPath := filepath.Join(home, ".claude", "settings.json")
+
+	data, err := os.ReadFile(settingsPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
+	var settings map[string]interface{}
+	if err := json.Unmarshal(data, &settings); err != nil {
+		return fmt.Errorf("parse %s: %w", settingsPath, err)
+	}
+
+	changed := false
+
+	// Remove statusLine if it points to ina
+	if sl, ok := settings["statusLine"].(map[string]interface{}); ok {
+		if cmd, _ := sl["command"].(string); strings.Contains(cmd, "ina hud") {
+			delete(settings, "statusLine")
+			changed = true
+			fmt.Println("Removed: statusLine (HUD)")
+		}
+	}
+
+	// Remove ina hooks (entries pointing to /hooks/ endpoints)
+	if hooks, ok := settings["hooks"].(map[string]interface{}); ok {
+		var removed []string
+		for _, event := range []string{"SessionStart", "SessionEnd", "Stop", "PostToolUse"} {
+			if entry, exists := hooks[event]; exists {
+				raw, _ := json.Marshal(entry)
+				if strings.Contains(string(raw), "127.0.0.1") && strings.Contains(string(raw), "/hooks/") {
+					delete(hooks, event)
+					removed = append(removed, event)
+					changed = true
+				}
+			}
+		}
+		if len(hooks) == 0 {
+			delete(settings, "hooks")
+		}
+		if len(removed) > 0 {
+			fmt.Printf("Removed: hooks (%s)\n", strings.Join(removed, ", "))
+		}
+	}
+
+	// Remove mcpServers.ina
+	if mcp, ok := settings["mcpServers"].(map[string]interface{}); ok {
+		if _, exists := mcp["ina"]; exists {
+			delete(mcp, "ina")
+			changed = true
+			fmt.Println("Removed: mcpServers.ina")
+		}
+		if len(mcp) == 0 {
+			delete(settings, "mcpServers")
+		}
+	}
+
+	if !changed {
+		fmt.Println("settings.json: nothing to clean")
+		return nil
+	}
+
+	out, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(settingsPath, out, 0600); err != nil {
+		return err
+	}
+	fmt.Printf("Updated: %s\n", settingsPath)
+	return nil
+}
+
+func restorePrePushHook() {
+	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		return
+	}
+	hookPath := filepath.Join(strings.TrimSpace(string(out)), ".git", "hooks", "pre-push")
+
+	data, err := os.ReadFile(hookPath)
+	if err != nil {
+		return
+	}
+	if !strings.Contains(string(data), "ina eval") {
+		return
+	}
+
+	backup := hookPath + ".backup"
+	if _, err := os.Stat(backup); err == nil {
+		_ = os.Rename(backup, hookPath)
+		fmt.Println("Restored: pre-push hook from backup")
+	} else {
+		os.Remove(hookPath)
+		fmt.Println("Removed: pre-push hook")
+	}
+}
+
 func init() {
 	rootCmd.AddCommand(installCmd)
+	uninstallCmd.Flags().BoolVar(&purgeFlag, "purge", false, "also remove ~/.ina (config, logs, registry)")
 	rootCmd.AddCommand(uninstallCmd)
 }
