@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -58,14 +59,34 @@ var setupCmd = &cobra.Command{
 		}
 		settings["hooks"] = existingHooks
 
-		// Statusline — ina hud
+		// Statusline — ina hud (ask user)
 		inaPath := findIna()
 		if inaPath != "" {
-			settings["statusLine"] = map[string]interface{}{
-				"type":    "command",
-				"command": inaPath + " hud",
+			fmt.Println()
+			fmt.Println("HUD statusline shows context usage and rate limits at the bottom of Claude Code.")
+			fmt.Println("  Example: infinite-agent │ ██░░░ 38%  03:00 █░░░░  7d ░░░░░")
+			fmt.Print("Enable HUD? [Y/n] ")
+			// Use /dev/tty so the prompt works even when stdin is a pipe (e.g. curl | sh).
+			var reader *bufio.Reader
+			if tty, err := os.Open("/dev/tty"); err == nil {
+				defer tty.Close()
+				reader = bufio.NewReader(tty)
+			} else {
+				reader = bufio.NewReader(os.Stdin)
 			}
-			fmt.Printf("Statusline: %s hud\n", inaPath)
+			ans, _ := reader.ReadString('\n')
+			ans = strings.TrimSpace(strings.ToLower(ans))
+			if ans == "" || ans == "y" || ans == "yes" {
+				settings["statusLine"] = map[string]interface{}{
+					"type":    "command",
+					"command": inaPath + " hud",
+				}
+				fmt.Printf("Statusline: %s hud\n", inaPath)
+				fmt.Println("  → To turn it off later: ina hud off")
+			} else {
+				fmt.Println("HUD skipped.")
+				fmt.Println("  → To turn it on later: ina hud on")
+			}
 		}
 
 		// Find ina-mcp binary
