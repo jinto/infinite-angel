@@ -1,12 +1,13 @@
 # ina — Infinite Agent
 
-Coding agents that never stop. 에이전트 감시, 재시작, 오케스트레이션 데몬 + 11개 스킬 시스템.
+Coding agents that never stop. 에이전트 감시, 재시작, 오케스트레이션 데몬 + 12개 스킬 시스템.
 
 ## Skills
 
 - `/ina:autopilot` — 파이프라인 오케스트레이터 (think → plan → build)
 - `/ina:explore` — "만들까 말까?" 탐색 — 시장조사 인라인 + GO/NO-GO/PIVOT 판정
 - `/ina:think` — 소크라틱 인터뷰로 기술 아이디어 → 스펙
+- `/ina:rethink` — 코드베이스 종합검진 + "처음부터 다시 만든다면?" + 수정 계획
 - `/ina:plan` — 합의 기반 플래닝 + TDD 태스크 분해
 - `/ina:build` — 구현 → 리뷰 → 커밋 한방 실행기 (3-lane 리뷰 내장)
 - `/ina:review` — 병렬 3-lane 코드 리뷰 (단독 실행용)
@@ -32,12 +33,13 @@ autopilot: think → plan → build
 
 | From | Output Path | To | Input |
 |------|------------|-----|-------|
-| explore | `.ina/explore/{slug}.md` | think (GO 시) | 판정 문서 |
-| think | `.ina/specs/think-{slug}.md` | plan | 스펙 파일 경로 |
+| explore | `.ina/specs/{YYYYMMDD-HHMM}-explore-{slug}.md` | think (GO 시) | 판정 문서 |
+| think | `.ina/specs/{YYYYMMDD-HHMM}-think-{slug}.md` | plan | 스펙 파일 경로 |
+| rethink | `.ina/specs/{YYYYMMDD-HHMM}-rethink-{slug}.md` | plan | 수정 계획 |
 | plan | `.claude/plans/{slug}.md` + `TASKS.md` | build | TASKS.md 체크박스 |
 | build | 커밋된 코드 (구현→리뷰→커밋 내장) | autopilot | 완료 신호 |
 | review | CLEAN / CODE CHANGE REQUIRED | build | 단독 실행 시 |
-| research | `.ina/research/{slug}.md` | think/plan | 참고 자료 |
+| research | `.ina/specs/{YYYYMMDD-HHMM}-research-{slug}.md` | think/plan | 참고 자료 |
 | design | 구현된 디자인 코드 | build | Phase 2에서 리뷰 |
 
 ## HUD (Statusline)

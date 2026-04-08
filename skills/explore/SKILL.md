@@ -172,7 +172,7 @@ Agent 3 — Technical Precedent (Builder 모드 또는 기술 아이디어)
 
 ---
 
-판단 문서를 `.ina/explore/{slug}.md`에 저장:
+판단 문서를 `.ina/specs/{YYYYMMDD-HHMM}-explore-{slug}.md`에 저장:
 
 ```markdown
 # Explore: {아이디어 제목}
@@ -217,4 +217,4 @@ Agent 3 — Technical Precedent (Builder 모드 또는 기술 아이디어)
 ## 입출력
 
 - **입력**: 자연어 아이디어 설명
-- **출력**: `.ina/explore/{slug}.md` (GO / NO-GO / PIVOT 판정 문서)
+- **출력**: `.ina/specs/{YYYYMMDD-HHMM}-explore-{slug}.md` (GO / NO-GO / PIVOT 판정 문서)

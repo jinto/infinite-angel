@@ -67,6 +67,7 @@ Other Claude Code plugins are **prompt libraries**. ina is **infrastructure**.
 | `explore` | "Should I build this?" — inline market research + GO / NO-GO / PIVOT verdict |
 | `autopilot` | Full pipeline: think → plan → build |
 | `think` | Idea → spec (technical / business / improve) |
+| `rethink` | Codebase health check — full scan + codex review + improvement plan |
 | `plan` | Consensus planning + TDD task breakdown |
 | `build` | Implement → review → commit in one shot (3-lane review built-in) |
 | `review` | Standalone 3-lane review (adversarial + security + simplify) |
@@ -88,7 +89,7 @@ Don't know which skill to use? Just describe what you want — ina auto-selects 
 /ina:explore I'm thinking of a SaaS tool for async code review
 ```
 
-Detects Startup or Builder mode → questions with inline WebSearch → competitive landscape → premise challenge → GO / NO-GO / PIVOT verdict saved to `.ina/explore/`.
+Detects Startup or Builder mode → questions with inline WebSearch → competitive landscape → premise challenge → GO / NO-GO / PIVOT verdict saved to `.ina/specs/`.
 
 ### "I have a vague idea"
 
@@ -98,10 +99,18 @@ Detects Startup or Builder mode → questions with inline WebSearch → competit
 
 Socratic interview → multi-perspective validation (Architect/Critic/CEO) → spec document saved to `.ina/specs/`.
 
+### "Is this code any good?"
+
+```
+/ina:rethink
+```
+
+Full codebase scan + parallel codex review → "If I rebuilt this from scratch, what would I do differently?" → improvement plan saved to `.ina/specs/`. No code modified.
+
 ### "I have a spec, need a plan"
 
 ```
-/ina:plan .ina/specs/think-auth.md
+/ina:plan .ina/specs/20260405-1000-think-auth.md
 ```
 
 Consensus planning (Planner → Architect → Critic) → TDD task breakdown → TASKS.md.
@@ -176,9 +185,9 @@ re-explore
 │  In-session orchestration via               │
 │  Claude Code native tools                   │
 │                                             │
-│  explore / autopilot / think / plan /       │
-│  build / review / research / design /       │
-│  test / ship / guard                        │
+│  explore / autopilot / think / rethink /    │
+│  plan / build / review / research /         │
+│  design / test / ship / guard               │
 ├─────────────────────────────────────────────┤
 │  Daemon Layer (Go binary)                   │
 │  Out-of-session process supervision         │

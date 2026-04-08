@@ -15,6 +15,7 @@ user-invocable: false
 | **autopilot** | `/ina:autopilot` | 아이디어 → 커밋 전자동 파이프라인 |
 | **explore** | `/ina:explore` | "만들까 말까?" 탐색 — 시장조사 + GO/NO-GO/PIVOT 판정 |
 | **think** | `/ina:think` | 아이디어 구체화 (기술/사업/개선) |
+| **rethink** | `/ina:rethink` | 코드베이스 종합검진 + 수정 계획 |
 | **plan** | `/ina:plan` | 합의 기반 플래닝 + TDD 태스크 분해 |
 | **build** | `/ina:build` | TASKS.md 태스크 실행 (직접/subagent/team) |
 | **review** | `/ina:review` | 커밋 전 코드 리뷰 + 자동 수정 |
@@ -46,6 +47,7 @@ user-invocable: false
 
 > **explore vs research**: explore는 "해야 하나?" 결정을 위한 질문+조사 통합. research는 결정 이후 순수 정보 수집.
 > **explore vs think**: explore는 GO/NO-GO 판정이 정상 출력. think는 이미 만들기로 결정한 후 스펙 작성.
+> **rethink vs think improve**: rethink는 전체 코드베이스 자동 전수조사 + codex 병렬 검토. think improve는 사용자 인터뷰 기반 개선 방향 탐색.
 
 ### 아이디어 / 요구사항 단계
 
@@ -54,6 +56,7 @@ user-invocable: false
 | "~하고 싶어", "~하면 어떨까", 모호한 아이디어 | `/ina:think` |
 | "스타트업", "사업", "제품", 시장/수익 관련 | `/ina:think` (business 모드) |
 | "리팩터", "개선", "정리", "성능" + 기존 코드 | `/ina:think` (improve 모드) |
+| "전체 검토", "종합검진", "처음부터 다시", "코드 점검" | `/ina:rethink` |
 | "조사해줘", "비교해줘", "찾아봐줘" | `/ina:research` |
 
 ### 플래닝 단계
@@ -120,6 +123,7 @@ explore → think → plan → build → review → commit
 | explore (PIVOT) | `/ina:explore` (새 방향으로 재실행) |
 | explore (NO-GO) | 종료 또는 새 아이디어로 재시작 |
 | think | `/ina:plan` |
+| rethink | `/ina:plan` (수정 계획을 태스크로 분해) |
 | plan | `/ina:build` |
 | build | `/ina:review` |
 | design | `/ina:review` |

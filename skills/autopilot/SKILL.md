@@ -32,7 +32,7 @@ argument-hint: [task description]
   "stage": "build",
   "skill": "ina:build",
   "task": "인증 시스템 추가",
-  "spec_path": ".ina/specs/think-auth.md",
+  "spec_path": ".ina/specs/20260405-1000-think-auth.md",
   "plan_path": ".claude/plans/auth.md",
   "started_at": "2026-04-05T10:00:00Z",
   "updated_at": "2026-04-05T10:30:00Z"
@@ -80,7 +80,7 @@ autopilot 시작
 
 1. `/ina:think` 스킬 호출 (태스크 설명 전달)
 2. 완료 후 산출물 검증:
-   - `.ina/specs/think-{slug}.md` 존재
+   - `.ina/specs/{YYYYMMDD-HHMM}-think-{slug}.md` 존재
    - Goal, Constraints, Acceptance Criteria 섹션이 비어있지 않음
 3. 검증 실패 시: 사용자에게 스펙 보완 요청
 4. `pipeline.json` 업데이트: `stage="plan"`, `spec_path` 기록
