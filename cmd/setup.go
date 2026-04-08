@@ -120,6 +120,9 @@ var setupCmd = &cobra.Command{
 		// Install Context7 MCP if not already configured
 		setupContext7()
 
+		// Detect Codex CLI
+		setupCodex()
+
 		// Install pre-push hook for LLM-Judge eval
 		installPrePushHook()
 
@@ -173,6 +176,20 @@ func setupContext7() {
 	fmt.Println("done")
 }
 
+
+func setupCodex() {
+	path, err := exec.LookPath("codex")
+	if err != nil {
+		fmt.Println("Codex CLI: not found (install with: npm i -g @openai/codex)")
+		return
+	}
+	out, err := exec.Command("codex", "--version").Output()
+	if err != nil {
+		fmt.Printf("Codex CLI: found at %s (version unknown)\n", path)
+		return
+	}
+	fmt.Printf("Codex CLI: %s (%s)\n", strings.TrimSpace(string(out)), path)
+}
 
 func installPrePushHook() {
 	// Find project root (git top-level)
