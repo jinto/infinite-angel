@@ -175,6 +175,26 @@ re-explore
 
 **Execution delegation** — build auto-selects direct execution, subagent parallelism, or team coordination based on task count and independence.
 
+**Plan sizing** — plans target 3-7 tasks. Larger scopes are split into multiple plans tracked as sections in TASKS.md. Build processes only the active section.
+
+---
+
+## Generated Files
+
+```
+.ina/specs/                                ← specs, verdicts, analysis
+├── {YYYYMMDD-HHMM}-explore-{slug}.md
+├── {YYYYMMDD-HHMM}-think-{slug}.md
+└── {YYYYMMDD-HHMM}-rethink-{slug}.md
+
+.claude/plans/{slug}.md                    ← execution plans
+TASKS.md                                   ← task checklist (sectioned by plan)
+
+docs/{YYYYMMDD-HHMM}-research-{slug}.md    ← research documents
+
+.state/pipeline.json                       ← autopilot crash recovery
+```
+
 ---
 
 ## Architecture

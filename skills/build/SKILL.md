@@ -51,6 +51,8 @@ Phase 3: 커밋 (문서 확인 → 사용자 허락 → commit)
 > `ina_report_progress(in_progress="태스크 파악", remaining="{전체 미완료 수}")`
 
 - `TASKS.md` 읽고 미완료(`- [ ]`) 항목 식별
+- **섹션이 여러 개면 `← 현재` 표시된 섹션만 처리** (다른 섹션은 무시)
+- 현재 섹션 완료 시: ✅ 표시하고, 다음 섹션에 `← 현재` 이동
 - 관련 플랜 파일(`.claude/plans/*.md`) 읽어서 컨텍스트 확보
 - 루프백 재진입 시: `.state/review-issues.md` 존재하면 해당 이슈 우선 처리
 - TASKS.md 파싱 실패 시: 사용자에게 경로 확인 요청

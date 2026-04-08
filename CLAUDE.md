@@ -39,7 +39,7 @@ autopilot: think → plan → build
 | plan | `.claude/plans/{slug}.md` + `TASKS.md` | build | TASKS.md 체크박스 |
 | build | 커밋된 코드 (구현→리뷰→커밋 내장) | autopilot | 완료 신호 |
 | review | CLEAN / CODE CHANGE REQUIRED | build | 단독 실행 시 |
-| research | `.ina/specs/{YYYYMMDD-HHMM}-research-{slug}.md` | think/plan | 참고 자료 |
+| research | `docs/{YYYYMMDD-HHMM}-research-{slug}.md` | think/plan | 참고 자료 |
 | design | 구현된 디자인 코드 | build | Phase 2에서 리뷰 |
 
 ## HUD (Statusline)
