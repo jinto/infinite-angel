@@ -3,5 +3,7 @@ ina-mcp
 *.log
 .state/
 .ina/
+.claude/*
+!.claude/commands/
 ref/
 dist/
