@@ -70,6 +70,14 @@ INFA_E2E=1 go test ./test/ -run TestSkillRouting -v
 INFA_EVAL=1 go test ./test/ -run TestSkillEval -v -timeout 600s
 ```
 
+## Versioning
+
+**git tag와 `.claude-plugin/plugin.json`의 version은 반드시 동일해야 한다.**
+
+- 버전을 올릴 때 두 곳을 **항상 함께** 수정할 것
+- pre-push hook이 불일치 시 푸시를 차단하지만, 커밋 단계에서부터 맞춰야 함
+- 태그 형식: `v1.4.0`, plugin.json 형식: `"1.4.0"` (v 접두사 없음)
+
 ## Conventions
 
 - 커밋 전 반드시 사용자 허락
