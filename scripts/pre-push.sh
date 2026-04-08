@@ -7,6 +7,23 @@ set -e
 REMOTE="$1"
 URL="$2"
 
+# --- Version sync check: tag vs plugin.json ---
+while read local_ref local_sha remote_ref remote_sha; do
+    if echo "$local_ref" | grep -q '^refs/tags/v'; then
+        TAG_VERSION=$(echo "$local_ref" | sed 's|refs/tags/v||')
+        PROJECT_ROOT=$(git rev-parse --show-toplevel)
+        PLUGIN_JSON="$PROJECT_ROOT/.claude-plugin/plugin.json"
+        if [ -f "$PLUGIN_JSON" ]; then
+            PLUGIN_VERSION=$(grep '"version"' "$PLUGIN_JSON" | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
+            if [ "$TAG_VERSION" != "$PLUGIN_VERSION" ]; then
+                echo "[ina] ERROR: Tag v${TAG_VERSION} does not match plugin.json version ${PLUGIN_VERSION}"
+                echo "[ina] Update .claude-plugin/plugin.json before pushing the tag."
+                exit 1
+            fi
+        fi
+    fi
+done < /dev/stdin
+
 # Determine base branch
 BASE_BRANCH="origin/main"
 if ! git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
