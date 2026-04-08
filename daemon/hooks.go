@@ -3,6 +3,7 @@ package daemon
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -65,14 +66,13 @@ func (d *Daemon) startHookServer() error {
 	return d.hookServer.ListenAndServe()
 }
 
-func (d *Daemon) handleHookSessionStart(w http.ResponseWriter, r *http.Request) {
-	p, ok := decodeHook[hookPayload](w, r)
-	if !ok {
+// Core hook event processors — shared by HTTP and socket handlers.
+
+func (d *Daemon) processSessionStart(p hookPayload) {
+	d.logger.Printf("hook: session-start session=%s cwd=%s", p.SessionID, p.CWD)
+	if p.CWD == "" {
 		return
 	}
-
-	d.logger.Printf("hook: session-start session=%s cwd=%s", p.SessionID, p.CWD)
-
 	if a := d.registry.FindByCWD(p.CWD); a == nil {
 		a = agent.New(nameFromCWD(p.CWD), agent.KindClaude, p.CWD, "auto-detected session")
 		a.SetPID(0)
@@ -80,7 +80,34 @@ func (d *Daemon) handleHookSessionStart(w http.ResponseWriter, r *http.Request) 
 		d.persistRegistry()
 		d.logger.Printf("auto-registered agent %s from hook", a.Name)
 	}
+}
 
+func (d *Daemon) processSessionEnd(p hookPayload) {
+	if a := d.registry.FindByCWD(p.CWD); a != nil {
+		a.SetState(agent.StateDead)
+	}
+}
+
+func (d *Daemon) processStop(p hookPayload) {
+	if a := d.registry.FindByCWD(p.CWD); a != nil {
+		a.SetLastActive(time.Now())
+	}
+}
+
+func (d *Daemon) processToolUse(p hookPayload) {
+	if a := d.registry.FindByCWD(p.CWD); a != nil {
+		a.TouchLastActive(time.Now())
+	}
+}
+
+// HTTP hook handlers — thin wrappers around core processors.
+
+func (d *Daemon) handleHookSessionStart(w http.ResponseWriter, r *http.Request) {
+	p, ok := decodeHook[hookPayload](w, r)
+	if !ok {
+		return
+	}
+	d.processSessionStart(p)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -89,13 +116,7 @@ func (d *Daemon) handleHookSessionEnd(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-
-	d.logger.Printf("hook: session-end session=%s cwd=%s", p.SessionID, p.CWD)
-
-	if a := d.registry.FindByCWD(p.CWD); a != nil {
-		a.SetState(agent.StateDead)
-	}
-
+	d.processSessionEnd(p)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -104,12 +125,7 @@ func (d *Daemon) handleHookStop(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-
-	// Stop fires once per response turn -- always update (low frequency).
-	if a := d.registry.FindByCWD(p.CWD); a != nil {
-		a.SetLastActive(time.Now())
-	}
-
+	d.processStop(p)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -118,13 +134,7 @@ func (d *Daemon) handleHookToolUse(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-
-	// Tool-use fires many times per second during active work.
-	// Debounce via TouchLastActive to reduce lock contention.
-	if a := d.registry.FindByCWD(p.CWD); a != nil {
-		a.TouchLastActive(time.Now())
-	}
-
+	d.processToolUse(p)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -155,6 +165,39 @@ func (d *Daemon) handleHookBlocked(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+// handleHookForward processes hook events forwarded from `ina hook <event>`
+// via the unix socket, instead of the HTTP hook server.
+func (d *Daemon) handleHookForward(conn net.Conn, raw json.RawMessage) {
+	var req struct {
+		Event string          `json:"event"`
+		Body  json.RawMessage `json:"body"`
+	}
+	if err := json.Unmarshal(raw, &req); err != nil {
+		d.respond(conn, Response{OK: true})
+		return
+	}
+
+	var payload hookPayload
+	if len(req.Body) > 0 {
+		json.Unmarshal(req.Body, &payload)
+	}
+
+	switch req.Event {
+	case "session-start":
+		d.processSessionStart(payload)
+	case "session-end":
+		d.processSessionEnd(payload)
+	case "stop":
+		d.processStop(payload)
+	case "post-tool-use":
+		d.processToolUse(payload)
+	default:
+		d.logger.Printf("hook: unknown event %q via socket", req.Event)
+	}
+
+	d.respond(conn, Response{OK: true})
 }
 
 func nameFromCWD(cwd string) string {

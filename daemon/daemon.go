@@ -167,6 +167,8 @@ func (d *Daemon) handleConn(conn net.Conn) {
 		d.handleProgress(conn, cmd.Data)
 	case ActionBlocked:
 		d.handleBlocked(conn, cmd.Data)
+	case ActionHook:
+		d.handleHookForward(conn, cmd.Data)
 	default:
 		d.respond(conn, Response{Error: "unknown action: " + cmd.Action})
 	}

@@ -9,6 +9,7 @@ const (
 	ActionStop     = "stop"
 	ActionProgress = "progress"
 	ActionBlocked  = "blocked"
+	ActionHook     = "hook"
 )
 
 type Command struct {

@@ -30,53 +30,24 @@ var setupCmd = &cobra.Command{
 			}
 		}
 
-		port := cfg.Daemon.GetHookPort()
-		base := fmt.Sprintf("http://127.0.0.1:%d", port)
-
-		// Build hooks config — each entry maps an event to an HTTP hook endpoint.
-		hookEntry := func(matcher, path string, timeout int) []map[string]interface{} {
-			return []map[string]interface{}{
-				{"matcher": matcher, "hooks": []map[string]interface{}{
-					{"type": "http", "url": base + path, "timeout": timeout},
-				}},
-			}
+		// Detect old HTTP hooks and notify user.
+		if hasOldHTTPHooks(settings) {
+			fmt.Println("Detected old HTTP hooks (port 9111) — replacing with resilient command hooks.")
 		}
 
-		hooks := map[string]interface{}{
-			"SessionStart": hookEntry("", "/hooks/session-start", 5),
-			"SessionEnd":   hookEntry("", "/hooks/session-end", 5),
-			"Stop":         hookEntry("", "/hooks/stop", 5),
-			"PostToolUse":  hookEntry(".*", "/hooks/post-tool-use", 2),
-		}
+		// Build hooks config using command type for graceful degradation.
+		inaPath := findIna()
+		inaHooks := buildHooks(inaPath)
 
-		// Merge hooks into existing settings
-		existingHooks, _ := settings["hooks"].(map[string]interface{})
-		if existingHooks == nil {
-			existingHooks = make(map[string]interface{})
-		}
-		for k, v := range hooks {
-			existingHooks[k] = v
-		}
-		settings["hooks"] = existingHooks
+		// Merge: replace ina hooks, preserve all others.
+		mergeInaHooks(settings, inaHooks)
 
 		// Statusline — ina hud (ask user)
-		inaPath := findIna()
 		if inaPath != "" {
 			fmt.Println()
 			fmt.Println("HUD statusline shows context usage and rate limits at the bottom of Claude Code.")
 			fmt.Println("  Example: infinite-angel │ ██░░░ 38%  03:00 █░░░░  7d ░░░░░")
-			fmt.Print("Enable HUD? [Y/n] ")
-			// Use /dev/tty so the prompt works even when stdin is a pipe (e.g. curl | sh).
-			var reader *bufio.Reader
-			if tty, err := os.Open("/dev/tty"); err == nil {
-				defer tty.Close()
-				reader = bufio.NewReader(tty)
-			} else {
-				reader = bufio.NewReader(os.Stdin)
-			}
-			ans, _ := reader.ReadString('\n')
-			ans = strings.TrimSpace(strings.ToLower(ans))
-			if ans == "" || ans == "y" || ans == "yes" {
+			if promptYesNo("Enable HUD?") {
 				settings["statusLine"] = map[string]interface{}{
 					"type":    "command",
 					"command": inaPath + " hud",
@@ -115,7 +86,7 @@ var setupCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Hooks configured → %s\n", settingsPath)
-		fmt.Printf("Hook endpoint: %s/hooks/*\n", base)
+		fmt.Printf("Hook command: %s hook <event>\n", inaPath)
 
 		// Install Context7 MCP if not already configured
 		setupContext7()
@@ -126,7 +97,19 @@ var setupCmd = &cobra.Command{
 		// Install pre-push hook for LLM-Judge eval
 		installPrePushHook()
 
-		fmt.Println("\nRun 'ina daemon' to start receiving events.")
+		// Suggest install if LaunchAgent is not configured.
+		if _, err := os.Stat(plistPath()); os.IsNotExist(err) {
+			fmt.Println()
+			if promptYesNo("Install ina as a launch agent (auto-start on login)?") {
+				if err := installCmd.RunE(installCmd, nil); err != nil {
+					fmt.Printf("Warning: install failed: %v\n", err)
+				}
+			} else {
+				fmt.Println("Skipped. Run 'ina install' later to enable auto-start.")
+			}
+		} else {
+			fmt.Println("\nLaunch agent already installed.")
+		}
 		return nil
 	},
 }
@@ -235,6 +218,123 @@ func installPrePushHook() {
 	}
 
 	fmt.Printf("Pre-push hook: installed → %s\n", dst)
+}
+
+// promptYesNo prints a prompt with [Y/n] and returns true for yes/enter.
+// Uses /dev/tty so it works even when stdin is a pipe (e.g. curl | sh).
+func promptYesNo(prompt string) bool {
+	fmt.Printf("%s [Y/n] ", prompt)
+	var reader *bufio.Reader
+	if tty, err := os.Open("/dev/tty"); err == nil {
+		defer tty.Close()
+		reader = bufio.NewReader(tty)
+	} else {
+		reader = bufio.NewReader(os.Stdin)
+	}
+	ans, _ := reader.ReadString('\n')
+	ans = strings.TrimSpace(strings.ToLower(ans))
+	return ans == "" || ans == "y" || ans == "yes"
+}
+
+// buildHooks creates the ina hook configuration using command type.
+// Each hook runs `ina hook <event> 2>/dev/null || true` for graceful degradation.
+func buildHooks(inaPath string) map[string]interface{} {
+	hookEntry := func(matcher, event string, timeout int) []map[string]interface{} {
+		cmd := fmt.Sprintf("%s hook %s 2>/dev/null || true", inaPath, event)
+		return []map[string]interface{}{
+			{"matcher": matcher, "hooks": []map[string]interface{}{
+				{"type": "command", "command": cmd, "timeout": timeout},
+			}},
+		}
+	}
+
+	return map[string]interface{}{
+		"SessionStart": hookEntry("", "session-start", 5),
+		"SessionEnd":   hookEntry("", "session-end", 5),
+		"Stop":         hookEntry("", "stop", 5),
+		"PostToolUse":  hookEntry(".*", "post-tool-use", 2),
+	}
+}
+
+// isInaHookEntry returns true if a hook entry belongs to ina
+// (either old HTTP hook or new command hook).
+func isInaHookEntry(entry interface{}) bool {
+	raw, _ := json.Marshal(entry)
+	s := string(raw)
+	// Old HTTP hooks.
+	if strings.Contains(s, "127.0.0.1") && strings.Contains(s, "/hooks/") {
+		return true
+	}
+	// New command hooks.
+	if strings.Contains(s, "ina hook") {
+		return true
+	}
+	return false
+}
+
+// mergeInaHooks replaces ina hooks in settings while preserving all other hooks.
+func mergeInaHooks(settings map[string]interface{}, inaHooks map[string]interface{}) {
+	existingHooks, _ := settings["hooks"].(map[string]interface{})
+	if existingHooks == nil {
+		existingHooks = make(map[string]interface{})
+	}
+
+	for event, inaEntry := range inaHooks {
+		inaArr, _ := inaEntry.([]map[string]interface{})
+
+		existing, ok := existingHooks[event]
+		if !ok {
+			// No existing hooks for this event — just set ina's.
+			existingHooks[event] = inaEntry
+			continue
+		}
+
+		// Filter out old ina entries, keep everything else.
+		var kept []interface{}
+		switch arr := existing.(type) {
+		case []interface{}:
+			for _, entry := range arr {
+				if !isInaHookEntry(entry) {
+					kept = append(kept, entry)
+				}
+			}
+		case []map[string]interface{}:
+			for _, entry := range arr {
+				if !isInaHookEntry(entry) {
+					kept = append(kept, entry)
+				}
+			}
+		}
+
+		// Append ina's new entry.
+		for _, entry := range inaArr {
+			kept = append(kept, entry)
+		}
+		existingHooks[event] = kept
+	}
+
+	settings["hooks"] = existingHooks
+}
+
+// hasOldHTTPHooks detects old ina HTTP hooks (not command hooks) in settings.
+func hasOldHTTPHooks(settings map[string]interface{}) bool {
+	hooks, _ := settings["hooks"].(map[string]interface{})
+	if hooks == nil {
+		return false
+	}
+	for _, event := range []string{"SessionStart", "SessionEnd", "Stop", "PostToolUse"} {
+		entries, ok := hooks[event]
+		if !ok {
+			continue
+		}
+		raw, _ := json.Marshal(entries)
+		s := string(raw)
+		// Only flag HTTP hooks, not already-converted command hooks.
+		if strings.Contains(s, "127.0.0.1") && strings.Contains(s, "/hooks/") && strings.Contains(s, "\"http\"") {
+			return true
+		}
+	}
+	return false
 }
 
 func init() {

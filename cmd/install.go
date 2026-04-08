@@ -147,8 +147,12 @@ func cleanSettings() error {
 	if err != nil {
 		return err
 	}
-	settingsPath := filepath.Join(home, ".claude", "settings.json")
+	return cleanSettingsFile(filepath.Join(home, ".claude", "settings.json"))
+}
 
+// cleanSettingsFile removes ina-related entries from a settings.json file.
+// Testable: accepts a file path instead of hardcoding ~/.claude/settings.json.
+func cleanSettingsFile(settingsPath string) error {
 	data, err := os.ReadFile(settingsPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -173,17 +177,37 @@ func cleanSettings() error {
 		}
 	}
 
-	// Remove ina hooks (entries pointing to /hooks/ endpoints)
+	// Remove ina hooks — both old HTTP hooks and new command hooks.
 	if hooks, ok := settings["hooks"].(map[string]interface{}); ok {
 		var removed []string
 		for _, event := range []string{"SessionStart", "SessionEnd", "Stop", "PostToolUse"} {
-			if entry, exists := hooks[event]; exists {
-				raw, _ := json.Marshal(entry)
-				if strings.Contains(string(raw), "127.0.0.1") && strings.Contains(string(raw), "/hooks/") {
-					delete(hooks, event)
-					removed = append(removed, event)
-					changed = true
+			entries, exists := hooks[event]
+			if !exists {
+				continue
+			}
+
+			arr, ok := entries.([]interface{})
+			if !ok {
+				continue
+			}
+
+			// Filter: keep non-ina entries, remove ina entries.
+			var kept []interface{}
+			for _, entry := range arr {
+				if !isInaHookEntry(entry) {
+					kept = append(kept, entry)
 				}
+			}
+
+			if len(kept) < len(arr) {
+				removed = append(removed, event)
+				changed = true
+			}
+
+			if len(kept) == 0 {
+				delete(hooks, event)
+			} else {
+				hooks[event] = kept
 			}
 		}
 		if len(hooks) == 0 {
