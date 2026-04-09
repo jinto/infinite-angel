@@ -1,10 +1,10 @@
 ---
-name: rethink
+name: overhaul
 description: 코드베이스 종합검진 — 전수조사 + codex 병렬 검토 + "처음부터 다시 만든다면?" + 수정 계획
 argument-hint: [scope or instructions]
 ---
 
-# Rethink
+# Overhaul
 
 기존 코드베이스를 밑바닥부터 다시 본다. 전체를 뒤지고, codex와 병렬로 검토하고, "처음부터 다시 만든다면?"이라는 질문에 답한다. 코드를 수정하지 않고 계획만 세운다.
 
@@ -25,17 +25,17 @@ argument-hint: [scope or instructions]
 
 자연어 문자열. 없으면 전체 코드베이스를 검토한다.
 
-- `rethink` — 전체 검토
-- `rethink daemon/` — daemon 패키지만
-- `rethink 테스트 가능성도 분석해줘` — 테스트 가능성 분석 포함
-- `rethink look01.md도 참고해서 비교해줘` — 외부 문서 비교 포함
+- `overhaul` — 전체 검토
+- `overhaul daemon/` — daemon 패키지만
+- `overhaul 테스트 가능성도 분석해줘` — 테스트 가능성 분석 포함
+- `overhaul look01.md도 참고해서 비교해줘` — 외부 문서 비교 포함
 
 ## ina 연동
 
-- 스캔 시작: `ina_report_progress(in_progress="RETHINK: 전수조사")`
-- codex 검토: `ina_report_progress(in_progress="RETHINK: codex 병렬 검토")`
-- 종합: `ina_report_progress(in_progress="RETHINK: 종합 분석")`
-- 막히면: `ina_mark_blocked(reason="RETHINK: {이유}")`
+- 스캔 시작: `ina_report_progress(in_progress="OVERHAUL: 전수조사")`
+- codex 검토: `ina_report_progress(in_progress="OVERHAUL: codex 병렬 검토")`
+- 종합: `ina_report_progress(in_progress="OVERHAUL: 종합 분석")`
+- 막히면: `ina_mark_blocked(reason="OVERHAUL: {이유}")`
 - 데몬 MCP 호출 실패 시 무시하고 계속 진행
 
 ## 전체 흐름
@@ -53,7 +53,7 @@ Phase 4: 수정 계획 수립
 
 ## Phase 1: 전수조사
 
-> `ina_report_progress(in_progress="RETHINK: 전수조사")`
+> `ina_report_progress(in_progress="OVERHAUL: 전수조사")`
 
 scope에 해당하는 코드를 전부 읽고 다음을 분류한다:
 
@@ -92,7 +92,7 @@ scope에 해당하는 코드를 전부 읽고 다음을 분류한다:
 
 ## Phase 2: codex 병렬 검토
 
-> `ina_report_progress(in_progress="RETHINK: codex 병렬 검토")`
+> `ina_report_progress(in_progress="OVERHAUL: codex 병렬 검토")`
 
 Phase 1과 **독립적인 시각**을 확보하기 위해 codex에 별도 검토를 위임한다.
 
@@ -110,7 +110,7 @@ codex 실패 시: Phase 1 결과만으로 진행 (codex는 보너스).
 
 ## Phase 3: 종합 분석
 
-> `ina_report_progress(in_progress="RETHINK: 종합 분석")`
+> `ina_report_progress(in_progress="OVERHAUL: 종합 분석")`
 
 ### >>> Step 1: Findings 병합
 
@@ -136,7 +136,7 @@ findings 테이블 + 재설계 관점을 사용자에게 보고.
 
 ## Phase 4: 수정 계획
 
-> `ina_report_progress(in_progress="RETHINK: 수정 계획 수립")`
+> `ina_report_progress(in_progress="OVERHAUL: 수정 계획 수립")`
 
 findings + 사용자 피드백을 바탕으로 수정 계획을 작성:
 
@@ -153,7 +153,7 @@ findings + 사용자 피드백을 바탕으로 수정 계획을 작성:
 - [ ] {이슈}: {수정 방향}
 ```
 
-`.ina/specs/{YYYYMMDD-HHMM}-rethink-{slug}.md`에 저장.
+`.ina/specs/{YYYYMMDD-HHMM}-overhaul-{slug}.md`에 저장.
 
 ---
 
@@ -166,7 +166,7 @@ findings + 사용자 피드백을 바탕으로 수정 계획을 작성:
 
 ## 오동작 방지
 
-- 각 Phase 진입 시 `>>> Rethink: {name}` 출력
+- 각 Phase 진입 시 `>>> Overhaul: {name}` 출력
 - **코드를 절대 수정하지 않는다** — 분석과 계획만
 - guard 규칙 자동 적용
 - 데몬 MCP 호출 실패 시 무시하고 계속 진행
@@ -174,4 +174,4 @@ findings + 사용자 피드백을 바탕으로 수정 계획을 작성:
 ## 입출력
 
 - **입력**: scope (선택), --testability (선택), --ref {file} (선택)
-- **출력**: `.ina/specs/{YYYYMMDD-HHMM}-rethink-{slug}.md` (분석 보고서 + 수정 계획)
+- **출력**: `.ina/specs/{YYYYMMDD-HHMM}-overhaul-{slug}.md` (분석 보고서 + 수정 계획)

@@ -67,7 +67,7 @@ Other Claude Code plugins are **prompt libraries**. ina is **infrastructure**.
 | `explore` | "Should I build this?" — inline market research + GO / NO-GO / PIVOT verdict |
 | `autopilot` | Full pipeline: think → plan → build |
 | `think` | Idea → spec (technical / business / improve) |
-| `rethink` | Codebase health check — full scan + codex review + improvement plan |
+| `overhaul` | Codebase health check — full scan + codex review + improvement plan |
 | `plan` | Consensus planning + TDD task breakdown |
 | `build` | Implement → review → commit in one shot (3-lane review built-in) |
 | `review` | Standalone 3-lane review (adversarial + security + simplify) |
@@ -102,7 +102,7 @@ Socratic interview → multi-perspective validation (Architect/Critic/CEO) → s
 ### "Is this code any good?"
 
 ```
-/ina:rethink
+/ina:overhaul
 ```
 
 Full codebase scan + parallel codex review → "If I rebuilt this from scratch, what would I do differently?" → improvement plan saved to `.ina/specs/`. No code modified.
@@ -185,7 +185,7 @@ re-explore
 .ina/specs/                                ← specs, verdicts, analysis
 ├── {YYYYMMDD-HHMM}-explore-{slug}.md
 ├── {YYYYMMDD-HHMM}-think-{slug}.md
-└── {YYYYMMDD-HHMM}-rethink-{slug}.md
+└── {YYYYMMDD-HHMM}-overhaul-{slug}.md
 
 .claude/plans/{slug}.md                    ← execution plans
 TASKS.md                                   ← task checklist (sectioned by plan)
@@ -205,7 +205,7 @@ docs/{YYYYMMDD-HHMM}-research-{slug}.md    ← research documents
 │  In-session orchestration via               │
 │  Claude Code native tools                   │
 │                                             │
-│  explore / autopilot / think / rethink /    │
+│  explore / autopilot / think / overhaul /    │
 │  plan / build / review / research /         │
 │  design / test / ship / guard               │
 ├─────────────────────────────────────────────┤
