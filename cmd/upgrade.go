@@ -45,6 +45,10 @@ var upgradeCmd = &cobra.Command{
 			return fmt.Errorf("upgrade failed: %w", err)
 		}
 
+		// Sync cached version files so HUD doesn't show stale upgrade hints.
+		writeLocalVersion(latest)
+		writeLatestVersion(latest)
+
 		fmt.Println("Upgrade complete.")
 		return nil
 	},
