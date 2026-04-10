@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -223,7 +224,43 @@ func upgradeHint() string {
 	if cur == "" || lat == "" || cur == lat {
 		return ""
 	}
+	if !semverGreater(lat, cur) {
+		return ""
+	}
 	return yellow + "↑ " + lat + reset
+}
+
+// semverGreater reports whether version a is strictly greater than b.
+// Both may optionally have a "v" prefix. Returns false on parse errors.
+func semverGreater(a, b string) bool {
+	pa, oka := parseSemver(a)
+	pb, okb := parseSemver(b)
+	if !oka || !okb {
+		return false
+	}
+	for i := 0; i < 3; i++ {
+		if pa[i] != pb[i] {
+			return pa[i] > pb[i]
+		}
+	}
+	return false
+}
+
+func parseSemver(s string) ([3]int, bool) {
+	s = strings.TrimPrefix(s, "v")
+	parts := strings.SplitN(s, ".", 3)
+	if len(parts) != 3 {
+		return [3]int{}, false
+	}
+	var r [3]int
+	for i, p := range parts {
+		n, err := strconv.Atoi(p)
+		if err != nil {
+			return [3]int{}, false
+		}
+		r[i] = n
+	}
+	return r, true
 }
 
 // ContextPctFile is where the last known context percentage is stored.
