@@ -10,7 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var logFollow bool
+var (
+	logFollow bool
+	logRaw    bool
+)
 
 var logCmd = &cobra.Command{
 	Use:   "log [agent-name]",
@@ -20,7 +23,9 @@ var logCmd = &cobra.Command{
 		var logPath string
 
 		if len(args) == 0 {
+			// daemon log is plain text, always raw
 			logPath = config.LogFile()
+			logRaw = true
 		} else {
 			var err error
 			logPath, err = findLatestLog(args[0])
@@ -33,7 +38,10 @@ var logCmd = &cobra.Command{
 			return fmt.Errorf("log file not found: %s", logPath)
 		}
 
-		return tailFile(logPath, logFollow)
+		if logRaw {
+			return tailFile(logPath, logFollow)
+		}
+		return prettyTail(logPath, 50, logFollow)
 	},
 }
 
@@ -73,5 +81,6 @@ func tailFile(path string, follow bool) error {
 
 func init() {
 	logCmd.Flags().BoolVarP(&logFollow, "follow", "f", false, "Follow log output")
+	logCmd.Flags().BoolVar(&logRaw, "raw", false, "Show raw JSON output")
 	rootCmd.AddCommand(logCmd)
 }

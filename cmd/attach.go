@@ -4,6 +4,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var attachRaw bool
+
 var attachCmd = &cobra.Command{
 	Use:   "attach <name>",
 	Short: "Attach to an agent's live log output",
@@ -13,10 +15,14 @@ var attachCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return tailFile(logPath, true)
+		if attachRaw {
+			return tailFile(logPath, true)
+		}
+		return prettyTail(logPath, 50, true)
 	},
 }
 
 func init() {
+	attachCmd.Flags().BoolVar(&attachRaw, "raw", false, "Show raw JSON output")
 	rootCmd.AddCommand(attachCmd)
 }
