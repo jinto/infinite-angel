@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 
 	"github.com/jinto/ina/daemon"
 	"github.com/spf13/cobra"
@@ -19,8 +20,12 @@ var launchCmd = &cobra.Command{
 	Short: "Launch a new agent on a project",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		absPath, err := filepath.Abs(args[0])
+		if err != nil {
+			return fmt.Errorf("resolve path: %w", err)
+		}
 		payload, _ := json.Marshal(map[string]interface{}{
-			"path":     args[0],
+			"path":     absPath,
 			"task":     args[1],
 			"agent":    launchAgent,
 			"name":     launchName,
